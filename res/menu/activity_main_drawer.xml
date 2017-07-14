@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="Surahs (Chapters)">
+        <menu>
+            <item
+                android:id="@+id/al_fatihah"
+                android:title="1 - Al-Fatihah" />
+            <item
+                android:id="@+id/al_baqarah"
+                android:title="2 - Al-Baqarah" />
+            <item
+                android:id="@+id/al_imran"
+                android:title="3 - Al-Imran" />
+            <item
+                android:id="@+id/an_nisa"
+                android:title="4 - An-Nisa" />
+            <item
+                android:id="@+id/al_maidah"
+                android:title="5 - Al-Maidah" />
+            <item
+                android:id="@+id/al_anam"
+                android:title="6 - Al-Anam" />
+            <item
+                android:id="@+id/al_araf"
+                android:title="7 - Al-Araf" />
+            <item
+                android:id="@+id/al_anfal"
+                android:title="8 - Al-Anfal" />
+            <item
+                android:id="@+id/al_tawbah"
+                android:title="9 - Al-Tawbah" />
+            <item
+                android:id="@+id/yunus"
+                android:title="10 - Yunus" />
+            <item
+                android:id="@+id/hud"
+                android:title="11 - Hud" />
+            <item
+                android:id="@+id/yusuf"
+                android:title="12 - Yusuf" />
+            <item
+                android:id="@+id/al_rad"
+                android:title="13 - Al-Rad" />
+            <item
+                android:id="@+id/ibrahim"
+                android:title="14 - Ibrahim" />
+            <item
+                android:id="@+id/al_hijr"
+                android:title="15 - Al-Hijr" />
+            <item
+                android:id="@+id/an_nahl"
+                android:title="16 - An-Nahl" />
+            <item
+                android:id="@+id/al_isra"
+                android:title="17 - Al-Isra" />
+            <item
+                android:id="@+id/al_kahf"
+                android:title="18 - Al-Kahf" />
+            <item
+                android:id="@+id/maryam"
+                android:title="19 - Maryam" />
+            <item
+                android:id="@+id/taha"
+                android:title="20 - Taha" />
+        </menu>
+    </item>
+
+</menu>
