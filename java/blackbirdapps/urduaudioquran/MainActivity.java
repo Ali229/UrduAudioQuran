@@ -21,6 +21,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.MediaController;
 import android.media.MediaPlayer.OnPreparedListener;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,7 +46,7 @@ public class MainActivity extends AppCompatActivity
     private static int number;
     private TextView durationLabel, elaspedLabel, surahText;
     int result;
-
+    ScrollView sv;
     static AudioManager am;
     static AudioManager.OnAudioFocusChangeListener afChangeListener;
 
@@ -87,7 +88,6 @@ public class MainActivity extends AppCompatActivity
                         songS.setProgress(getProgressPercentage(mediaPlayer.getCurrentPosition(), mediaPlayer.getDuration()));
                     }
                     checkPlayState();
-                    ;
                     handler.postDelayed(this, 50);
                 }
             }
@@ -108,7 +108,9 @@ public class MainActivity extends AppCompatActivity
     public void onResume() {
         super.onResume();
         checkPlayState();
-        getText();
+        if(myUri!=null) {
+            getText();
+        }
     }
 
     //====================================== Populate List =======================================//
@@ -238,6 +240,7 @@ public class MainActivity extends AppCompatActivity
             surahText.setTypeface(mFont);
         } catch (Exception ignored) {
         }
+        sv = (ScrollView) findViewById(R.id.scroll);
     }
 
     public void previousMethod() {
@@ -321,6 +324,7 @@ public class MainActivity extends AppCompatActivity
                 });
                 checkArray();
                 getText();
+                sv.fullScroll(ScrollView.FOCUS_UP);
             } catch (Exception e) {
                 Toast.makeText(this, e.toString(),
                         Toast.LENGTH_LONG).show();
@@ -332,9 +336,7 @@ public class MainActivity extends AppCompatActivity
 
     public void focus() {
         result = am.requestAudioFocus(afChangeListener,
-                // Use the music stream.
                 AudioManager.STREAM_MUSIC,
-                // Request permanent focus.
                 AudioManager.AUDIOFOCUS_GAIN);
     }
 
@@ -364,12 +366,10 @@ public class MainActivity extends AppCompatActivity
 
                 mediaPlayer.pause();
                 am.abandonAudioFocus(afChangeListener);
-                //playing = false;
             } else {
                 focus();
                 if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
                     mediaPlayer.start();
-                    //playing = true;
                 }
             }
         }
@@ -472,14 +472,13 @@ public class MainActivity extends AppCompatActivity
     public void getText() {
         try {
             surahText.setText("");
-            String sNumber = "s" + (number +1) + ".uaq";
+            String sNumber = "s" + (number + 1) + ".uaq";
             BufferedReader reader = new BufferedReader(new InputStreamReader(getAssets().open(sNumber)));
             String line;
             Log.e("Reader Stuff",reader.readLine());
             while ((line = reader.readLine()) != null) {
                 surahText.append(line);
             }
-
         } catch (Exception ex) {
             ex.printStackTrace();
         }
