@@ -39,7 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:background="#24292e"
+        android:background="#33383e"
         android:orientation="vertical"
         android:padding="15dp"
         android:weightSum="1">
@@ -59,7 +59,7 @@
                 android:layout_height="wrap_content"
                 android:text="00:00"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:textColor="#ffffff" />
+                android:textColor="#b2b2b2" />
 
             <SeekBar
                 android:id="@+id/songSeek"
@@ -73,7 +73,7 @@
                 android:layout_height="wrap_content"
                 android:text="00:00"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:textColor="#ffffff" />
+                android:textColor="#b2b2b2" />
         </LinearLayout>
 
         <RelativeLayout
