@@ -63,6 +63,288 @@
             <item
                 android:id="@+id/taha"
                 android:title="20 - Taha" />
+            <item
+                android:id="@+id/al_anbya"
+                android:title="21 - Al-Anbya" />
+            <item
+                android:id="@+id/al_haj"
+                android:title="22 - Al-Haj" />
+            <item
+                android:id="@+id/al_muminun"
+                android:title="23 - Al-Muminun" />
+            <item
+                android:id="@+id/an_nur"
+                android:title="24 - An-Nur" />
+            <item
+                android:id="@+id/al_furqan"
+                android:title="25 - Al-Furqan" />
+            <item
+                android:id="@+id/ash_shuara"
+                android:title="26 - Ash-Shuara" />
+            <item
+                android:id="@+id/an_naml"
+                android:title="27 - An-Naml" />
+            <item
+                android:id="@+id/al_qasas"
+                android:title="28 - Al-Qasas" />
+            <item
+                android:id="@+id/al_ankabut"
+                android:title="29 - Al-Ankabut" />
+            <item
+                android:id="@+id/ar_rum"
+                android:title="30 - Ar-Rum" />
+            <item
+                android:id="@+id/luqman"
+                android:title="31 - Luqman" />
+            <item
+                android:id="@+id/as_sajdah"
+                android:title="32 - As-Sajdah" />
+            <item
+                android:id="@+id/al_ahzab"
+                android:title="33 - Al-Ahzab" />
+            <item
+                android:id="@+id/saba"
+                android:title="34 - Saba" />
+            <item
+                android:id="@+id/fatir"
+                android:title="35 - Fatir" />
+            <item
+                android:id="@+id/ya_sin"
+                android:title="36 - Ya-Sin" />
+            <item
+                android:id="@+id/as_saffat"
+                android:title="37 - As-Saffat" />
+            <item
+                android:id="@+id/sad"
+                android:title="38 - Sad" />
+            <item
+                android:id="@+id/az_zumar"
+                android:title="39 - Az-Zumar" />
+            <item
+                android:id="@+id/ghafir"
+                android:title="40 - Ghafir" />
+            <item
+                android:id="@+id/fussilat"
+                android:title="41 - Fussilat" />
+            <item
+                android:id="@+id/ash_shuraa"
+                android:title="42 - Ash-Shuraa" />
+            <item
+                android:id="@+id/az_zukhruf"
+                android:title="43 - Az-Zukhruf" />
+            <item
+                android:id="@+id/ad_dukhan"
+                android:title="44 - Ad_Dukhan" />
+            <item
+                android:id="@+id/al_jathiyah"
+                android:title="45 - Al-Jathiyah" />
+            <item
+                android:id="@+id/al_ahqaf"
+                android:title="46 - Al-Ahqaf" />
+            <item
+                android:id="@+id/muhammad"
+                android:title="47 - Muhammad" />
+            <item
+                android:id="@+id/al_fath"
+                android:title="48 - Al_Fath" />
+            <item
+                android:id="@+id/al_hujurat"
+                android:title="49 - Al-Hujurat" />
+            <item
+                android:id="@+id/qaf"
+                android:title="50 - Qaf" />
+            <item
+                android:id="@+id/adh_dhariyat"
+                android:title="51 - Adh-Dhariyat" />
+            <item
+                android:id="@+id/at_tur"
+                android:title="52 - Tur" />
+            <item
+                android:id="@+id/an_najm"
+                android:title="53 - An-Najm" />
+            <item
+                android:id="@+id/al_qamar"
+                android:title="54 - Al-Qamar" />
+            <item
+                android:id="@+id/ar_rahman"
+                android:title="55 - Ar-Rahman" />
+            <item
+                android:id="@+id/al_waqiah"
+                android:title="56 - Al-Waqiah" />
+            <item
+                android:id="@+id/al_hadid"
+                android:title="57 - Al-Hadid" />
+            <item
+                android:id="@+id/al_mujadila"
+                android:title="58 - Al-Mujadila" />
+            <item
+                android:id="@+id/al_hashr"
+                android:title="59 - Al-Hashr" />
+            <item
+                android:id="@+id/al_mumtahanah"
+                android:title="60 - Al-Mumtahanah" />
+            <item
+                android:id="@+id/as_saf"
+                android:title="61 - As-Saf" />
+            <item
+                android:id="@+id/al_jumuah"
+                android:title="62 - Al-Jumuah" />
+            <item
+                android:id="@+id/al_munafiqun"
+                android:title="63 - Al-Munafiqun" />
+            <item
+                android:id="@+id/at_taghabun"
+                android:title="64 - At-Taghabun" />
+            <item
+                android:id="@+id/at_talaq"
+                android:title="65 - At-Talaq" />
+            <item
+                android:id="@+id/at_tahrim"
+                android:title="66 - At-Tahrim" />
+            <item
+                android:id="@+id/al_mulk"
+                android:title="67 - Al-Mulk" />
+            <item
+                android:id="@+id/al_qalam"
+                android:title="68 - Al-Qalam" />
+            <item
+                android:id="@+id/al_haqqah"
+                android:title="69 - Al-Haqqah" />
+            <item
+                android:id="@+id/al_maarij"
+                android:title="70 - Al-Maarij" />
+            <item
+                android:id="@+id/nuh"
+                android:title="71 - Nuh" />
+            <item
+                android:id="@+id/al_jinn"
+                android:title="72 - Al-Jinn" />
+            <item
+                android:id="@+id/al_muzzammil"
+                android:title="73 - Al-Muzzammil" />
+            <item
+                android:id="@+id/al_muddaththir"
+                android:title="74 - Al-Muddaththir" />
+            <item
+                android:id="@+id/al_qiyamah"
+                android:title="75 - Al-Qiyamah" />
+            <item
+                android:id="@+id/al_insan"
+                android:title="76 - Al-Insan" />
+            <item
+                android:id="@+id/al_mursalat"
+                android:title="77 - Al-Mursalat" />
+            <item
+                android:id="@+id/an_naba"
+                android:title="78 - An-Naba" />
+            <item
+                android:id="@+id/an_naziat"
+                android:title="79 - An-Naziat" />
+            <item
+                android:id="@+id/abasa"
+                android:title="80 - Abasa" />
+            <item
+                android:id="@+id/at_takwir"
+                android:title="81 - At-Takwir" />
+            <item
+                android:id="@+id/al_infitar"
+                android:title="82 - Al-Infitar" />
+            <item
+                android:id="@+id/al_mutaffifin"
+                android:title="83 - Al-Mutaffifin" />
+            <item
+                android:id="@+id/al_inshiqaq"
+                android:title="84 - Al-Inshiqaq" />
+            <item
+                android:id="@+id/al_buruj"
+                android:title="85 - Al-Buruj" />
+            <item
+                android:id="@+id/at_tariq"
+                android:title="86 - At-Tariq" />
+            <item
+                android:id="@+id/al_ala"
+                android:title="87 - Al-Ala" />
+            <item
+                android:id="@+id/al_ghashiyah"
+                android:title="88 - Al-Ghashiyah" />
+            <item
+                android:id="@+id/al_fajr"
+                android:title="89 - Al-Fajr" />
+            <item
+                android:id="@+id/al_balad"
+                android:title="90 - Al-Balad" />
+            <item
+                android:id="@+id/ash_shams"
+                android:title="91 - Ash-Shams" />
+            <item
+                android:id="@+id/al_layl"
+                android:title="92 - Al-Layl" />
+            <item
+                android:id="@+id/ad_duhaa"
+                android:title="93 - Ad-Duhaa" />
+            <item
+                android:id="@+id/ash_sharh"
+                android:title="94 - Ash-Sharh" />
+            <item
+                android:id="@+id/at_tin"
+                android:title="95 - At-Tin" />
+            <item
+                android:id="@+id/al_alaq"
+                android:title="96 - Al-Alaq" />
+            <item
+                android:id="@+id/al_qadr"
+                android:title="97 - Al-Qadr" />
+            <item
+                android:id="@+id/al_bayyinah"
+                android:title="98 - Al-Bayyinah" />
+            <item
+                android:id="@+id/az_zalzalah"
+                android:title="99 - Az-Zalzalah" />
+            <item
+                android:id="@+id/al_adiyat"
+                android:title="100 - Al-Adiyat" />
+            <item
+                android:id="@+id/al_qariah"
+                android:title="101 - Al-Qariah" />
+            <item
+                android:id="@+id/at_takathur"
+                android:title="102 - At-Takathur" />
+            <item
+                android:id="@+id/al_asr"
+                android:title="103 - Al-Asr" />
+            <item
+                android:id="@+id/al_humazah"
+                android:title="104 - Al-Humazah" />
+            <item
+                android:id="@+id/al_fil"
+                android:title="105 - Al-Fil" />
+            <item
+                android:id="@+id/quraysh"
+                android:title="106 - Quraysh" />
+            <item
+                android:id="@+id/al_maun"
+                android:title="107 - Al-Maun" />
+            <item
+                android:id="@+id/al_kawthar"
+                android:title="108 - Al-Kawthar" />
+            <item
+                android:id="@+id/al_kafirun"
+                android:title="109 - Al-Kafirun" />
+            <item
+                android:id="@+id/an_nasr"
+                android:title="110 - An-Nasr" />
+            <item
+                android:id="@+id/al_masad"
+                android:title="111 - Al-Masad" />
+            <item
+                android:id="@+id/al_ikhlas"
+                android:title="112 - Al-Ikhlas" />
+            <item
+                android:id="@+id/al_falaq"
+                android:title="113 - Al-Falaq" />
+            <item
+                android:id="@+id/an_nas"
+                android:title="114 - An-Nas" />
         </menu>
     </item>
 
