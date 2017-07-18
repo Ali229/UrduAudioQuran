@@ -1,6 +1,7 @@
 package blackbirdapps.urduaudioquran;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -34,22 +35,22 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnPreparedListener, MediaController.MediaPlayerControl, SeekBar.OnSeekBarChangeListener {
+        implements NavigationView.OnNavigationItemSelectedListener, OnPreparedListener, SeekBar.OnSeekBarChangeListener {
+    //====================================== Declarations ========================================//
     private static MediaPlayer mediaPlayer;
     private static Uri myUri;
-    private Handler handler = new Handler();
+    private static Handler handler = new Handler();
     private ImageButton playButton, nextButton, previousButton, rewindButton;
     private SeekBar songS;
     private static Runnable myRunnable;
     private static boolean stop = false, running = false;
-    public ArrayList<String> surahList = new ArrayList<>();
+    private static ArrayList<String> surahList = new ArrayList<>();
     private static int number;
     private TextView durationLabel, elaspedLabel, surahText;
-    int result;
-    ScrollView sv;
-    static AudioManager am;
-    static AudioManager.OnAudioFocusChangeListener afChangeListener;
-
+    private int result;
+    private ScrollView sv;
+    private static AudioManager am;
+    private static AudioManager.OnAudioFocusChangeListener afChangeListener;
     //====================================== Media State Handler =================================//
     public void onPrepared(final MediaPlayer mediaPlayer) {
 
@@ -108,12 +109,12 @@ public class MainActivity extends AppCompatActivity
     public void onResume() {
         super.onResume();
         checkPlayState();
-        if(myUri!=null) {
+        if (myUri != null) {
             getText();
         }
     }
 
-    //====================================== Populate List =======================================//
+    //====================================== Populate Surah List =================================//
     public void populateList() {
         if (surahList.size() == 0) {
             surahList.add("al_fatihah");
@@ -335,8 +336,20 @@ public class MainActivity extends AppCompatActivity
         } catch (Exception ignored) {
         }
         sv = (ScrollView) findViewById(R.id.scroll);
-    }
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            public void onCompletion(MediaPlayer mp) {
+                try {
+                    myUri = Uri.parse("android.resource://blackbirdapps.urduaudioquran/raw/" + surahList.get(number + 1));
+                    play();
+                } catch (IndexOutOfBoundsException e) {
+                    myUri = Uri.parse("android.resource://blackbirdapps.urduaudioquran/raw/" + surahList.get(0));
+                    play();
+                }
 
+            }
+        });
+    }
+    //====================================== Previous Surah ======================================//
     public void previousMethod() {
         try {
             myUri = Uri.parse("android.resource://blackbirdapps.urduaudioquran/raw/" + surahList.get(number - 1));
@@ -346,7 +359,7 @@ public class MainActivity extends AppCompatActivity
             play();
         }
     }
-
+    //====================================== Next Surah ==========================================//
     public void nextMethod() {
         try {
             myUri = Uri.parse("android.resource://blackbirdapps.urduaudioquran/raw/" + surahList.get(number + 1));
@@ -356,7 +369,7 @@ public class MainActivity extends AppCompatActivity
             play();
         }
     }
-
+    //====================================== Get Surah Number ====================================//
     public void checkArray() {
         String surahName = myUri.getLastPathSegment();
         number = surahList.indexOf(surahName);
@@ -386,6 +399,19 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+        if (id == R.id.action_share ) {
+            try {
+                Intent i = new Intent(Intent.ACTION_SEND);
+                i.setType("text/plain");
+                i.putExtra(Intent.EXTRA_SUBJECT, "My application name");
+                String sAux = "\nLet me recommend you this application\n\n";
+                sAux = sAux + "https://play.google.com/store/apps/details?id=Orion.Soft \n\n";
+                i.putExtra(Intent.EXTRA_TEXT, sAux);
+                startActivity(Intent.createChooser(i, "choose one"));
+            } catch(Exception e) {
+                //e.toString();
+            }
+        }
         return id == R.id.action_settings || super.onOptionsItemSelected(item);
     }
 
@@ -393,7 +419,6 @@ public class MainActivity extends AppCompatActivity
     public void play() {
         focus();
         if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            //playing = true;
             if (!songS.isEnabled()) {
                 songS.setEnabled(true);
             }
@@ -404,18 +429,7 @@ public class MainActivity extends AppCompatActivity
                 handler.removeCallbacks(myRunnable);
                 mediaPlayer.prepare();
                 mediaPlayer.start();
-                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                    public void onCompletion(MediaPlayer mp) {
-                        try {
-                            myUri = Uri.parse("android.resource://blackbirdapps.urduaudioquran/raw/" + surahList.get(number + 1));
-                            play();
-                        } catch (IndexOutOfBoundsException e) {
-                            myUri = Uri.parse("android.resource://blackbirdapps.urduaudioquran/raw/" + surahList.get(0));
-                            play();
-                        }
 
-                    }
-                });
                 checkArray();
                 getText();
                 sv.fullScroll(ScrollView.FOCUS_UP);
@@ -427,7 +441,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-
+    //====================================== Get Audio Focus =====================================//
     public void focus() {
         result = am.requestAudioFocus(afChangeListener,
                 AudioManager.STREAM_MUSIC,
@@ -480,65 +494,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void start() {
-        mediaPlayer.start();
-    }
-
-    @Override
-    public void pause() {
-        mediaPlayer.pause();
-    }
-
-    @Override
-    public int getDuration() {
-        return mediaPlayer.getDuration();
-    }
-
-    @Override
-    public int getCurrentPosition() {
-        return mediaPlayer.getCurrentPosition();
-    }
-
-
-    @Override
-    public void seekTo(int pos) {
-        mediaPlayer.seekTo(pos);
-    }
-
-    @Override
-    public boolean isPlaying() {
-        return mediaPlayer.isPlaying();
-    }
-
-    @Override
-    public int getBufferPercentage() {
-        return 0;
-    }
-
-    @Override
-    public boolean canPause() {
-        return true;
-    }
-
-    @Override
-    public boolean canSeekBackward() {
-        return true;
-    }
-
-    @Override
-    public boolean canSeekForward() {
-        return true;
-    }
-
-    @Override
-    public int getAudioSessionId() {
-        return mediaPlayer.getAudioSessionId();
-    }
-
-    @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
     }
 
+    //====================================== SeekBar onStartTouch  ===============================//
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
         handler.removeCallbacks(myRunnable);
@@ -547,29 +506,36 @@ public class MainActivity extends AppCompatActivity
         checkPlayState();
     }
 
+    //====================================== SeekBar onStopTouch  ================================//
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
         int currentPosition = progressToTimer(songS.getProgress(), mediaPlayer.getDuration());
         mediaPlayer.seekTo(currentPosition);
         stop = false;
-        mediaPlayer.start();
+        focus();
+        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            mediaPlayer.start();
+        }
         onPrepared(mediaPlayer);
         checkPlayState();
     }
 
+    //====================================== SeekTo onStop  ======================================//
     public int progressToTimer(int progress, int totalDuration) {
         int currentDuration;
         totalDuration = (totalDuration / 1000);
         currentDuration = (int) ((((double) progress) / 100) * totalDuration);
         return currentDuration * 1000;
     }
+
+    //====================================== Get Text For Surah  =================================//
     public void getText() {
         try {
             surahText.setText("");
             String sNumber = "s" + (number + 1) + ".uaq";
             BufferedReader reader = new BufferedReader(new InputStreamReader(getAssets().open(sNumber)));
             String line;
-            Log.e("Reader Stuff",reader.readLine());
+            Log.e("Reader Stuff", reader.readLine());
             while ((line = reader.readLine()) != null) {
                 surahText.append(line);
             }
