@@ -1,0 +1,48 @@
+<RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <RadioButton
+        android:id="@+id/s20"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="20" />
+
+    <RadioButton
+        android:id="@+id/s22"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="22" />
+
+    <RadioButton
+        android:id="@+id/s24"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="24 (Default)" />
+
+    <RadioButton
+        android:id="@+id/s26"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="26" />
+
+    <RadioButton
+        android:id="@+id/s28"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="28" />
+
+    <RadioButton
+        android:id="@+id/s30"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="30" />
+
+</RadioGroup>

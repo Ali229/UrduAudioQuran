@@ -1,6 +1,8 @@
 package blackbirdapps.urduaudioquran;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.media.AudioManager;
@@ -9,6 +11,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -53,7 +56,6 @@ public class MainActivity extends AppCompatActivity
     private static AudioManager.OnAudioFocusChangeListener afChangeListener;
     //====================================== Media State Handler =================================//
     public void onPrepared(final MediaPlayer mediaPlayer) {
-
         handler.post(myRunnable = new Runnable() {
             public void run() {
                 if (!(stop)) {
@@ -323,7 +325,10 @@ public class MainActivity extends AppCompatActivity
                     mediaPlayer.pause();
                     am.abandonAudioFocus(afChangeListener);
                 } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
-                    mediaPlayer.start();
+                    focus();
+                    if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                        mediaPlayer.start();
+                    }
                 } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
                     mediaPlayer.pause();
                 }
@@ -411,6 +416,23 @@ public class MainActivity extends AppCompatActivity
                 return true;
             } catch(Exception ignored) {
             }
+        }
+        else if (id == R.id.action_settings) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            // Get the layout inflater
+            LayoutInflater inflater = this.getLayoutInflater();
+
+            // Inflate and set the layout for the dialog
+            // Pass null as the parent view because its going in the dialog layout
+            builder.setView(inflater.inflate(R.layout.dialog, null))
+                    // Add action buttons
+                    .setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int id) {
+                        }
+                    });
+            final AlertDialog dialog = builder.create();
+            dialog.show();
         }
         return super.onOptionsItemSelected(item);
     }
