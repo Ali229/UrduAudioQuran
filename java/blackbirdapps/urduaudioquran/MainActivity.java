@@ -403,16 +403,16 @@ public class MainActivity extends AppCompatActivity
             try {
                 Intent i = new Intent(Intent.ACTION_SEND);
                 i.setType("text/plain");
-                i.putExtra(Intent.EXTRA_SUBJECT, "My application name");
-                String sAux = "\nLet me recommend you this application\n\n";
-                sAux = sAux + "https://play.google.com/store/apps/details?id=Orion.Soft \n\n";
+                i.putExtra(Intent.EXTRA_SUBJECT, "Urdu Audio Quran");
+                String sAux = "\nCheck out this Quran Application I'm using:\n";
+                sAux = sAux + "https://play.google.com/store/apps/details?id=blackbirdapps.urduaudioquran\n\n";
                 i.putExtra(Intent.EXTRA_TEXT, sAux);
-                startActivity(Intent.createChooser(i, "choose one"));
-            } catch(Exception e) {
-                //e.toString();
+                startActivity(Intent.createChooser(i, "Share Via"));
+                return true;
+            } catch(Exception ignored) {
             }
         }
-        return id == R.id.action_settings || super.onOptionsItemSelected(item);
+        return super.onOptionsItemSelected(item);
     }
 
     //====================================== Play ================================================//
