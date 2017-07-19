@@ -38,7 +38,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnPreparedListener, SeekBar.OnSeekBarChangeListener {
+        implements NavigationView.OnNavigationItemSelectedListener, OnPreparedListener, SeekBar.OnSeekBarChangeListener, AudioManager.OnAudioFocusChangeListener {
     //====================================== Declarations ========================================//
     private static MediaPlayer mediaPlayer;
     private static Uri myUri;
@@ -50,16 +50,15 @@ public class MainActivity extends AppCompatActivity
     private static ArrayList<String> surahList = new ArrayList<>();
     private static int number;
     private TextView durationLabel, elaspedLabel, surahText;
-    private int result;
     private ScrollView sv;
-    private static AudioManager am;
-    private static AudioManager.OnAudioFocusChangeListener afChangeListener;
+    private AudioManager am;
     //====================================== Media State Handler =================================//
     public void onPrepared(final MediaPlayer mediaPlayer) {
         handler.post(myRunnable = new Runnable() {
             public void run() {
                 if (!(stop)) {
                     running = true;
+                    checkPlayState();
                     if (durationLabel != null) {
                         int hours = (mediaPlayer.getDuration() / (1000 * 60 * 60) * 60);
                         int minutes = (mediaPlayer.getDuration() % (1000 * 60 * 60)) / (1000 * 60) + hours;
@@ -90,7 +89,6 @@ public class MainActivity extends AppCompatActivity
                         songS = (SeekBar) findViewById(R.id.songSeek);
                         songS.setProgress(getProgressPercentage(mediaPlayer.getCurrentPosition(), mediaPlayer.getDuration()));
                     }
-                    checkPlayState();
                     handler.postDelayed(this, 50);
                 }
             }
@@ -110,7 +108,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onResume() {
         super.onResume();
-        checkPlayState();
         if (myUri != null) {
             getText();
         }
@@ -317,23 +314,6 @@ public class MainActivity extends AppCompatActivity
             onPrepared(mediaPlayer);
         }
         am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        afChangeListener = new AudioManager.OnAudioFocusChangeListener() {
-            public void onAudioFocusChange(int focusChange) {
-                if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
-                    mediaPlayer.pause();
-                } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
-                    mediaPlayer.pause();
-                    am.abandonAudioFocus(afChangeListener);
-                } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
-                    focus();
-                    if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                        mediaPlayer.start();
-                    }
-                } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
-                    mediaPlayer.pause();
-                }
-            }
-        };
         try {
             Typeface mFont = Typeface.createFromAsset(getAssets(), "Nafees.ttf");
             surahText = (TextView) findViewById(R.id.surahT);
@@ -439,8 +419,6 @@ public class MainActivity extends AppCompatActivity
 
     //====================================== Play ================================================//
     public void play() {
-        focus();
-        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
             if (!songS.isEnabled()) {
                 songS.setEnabled(true);
             }
@@ -450,8 +428,7 @@ public class MainActivity extends AppCompatActivity
                 mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 handler.removeCallbacks(myRunnable);
                 mediaPlayer.prepare();
-                mediaPlayer.start();
-
+                mediaPlay();
                 checkArray();
                 getText();
                 sv.fullScroll(ScrollView.FOCUS_UP);
@@ -461,14 +438,6 @@ public class MainActivity extends AppCompatActivity
                 Log.e("Quran", "Play Error!", e);
             }
         }
-    }
-
-    //====================================== Get Audio Focus =====================================//
-    public void focus() {
-        result = am.requestAudioFocus(afChangeListener,
-                AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN);
-    }
 
     //====================================== Navigation Selection ================================//
     @SuppressWarnings("StatementWithEmptyBody")
@@ -478,7 +447,6 @@ public class MainActivity extends AppCompatActivity
         number = surahList.indexOf(id[1]);
         myUri = Uri.parse("android.resource://blackbirdapps.urduaudioquran/raw/" + surahList.get(number));
         play();
-        checkPlayState();
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer != null) {
             drawer.closeDrawer(GravityCompat.START);
@@ -493,17 +461,13 @@ public class MainActivity extends AppCompatActivity
             play();
         } else {
             if (mediaPlayer.isPlaying()) {
+                mediaPause();
 
-                mediaPlayer.pause();
-                am.abandonAudioFocus(afChangeListener);
             } else {
-                focus();
-                if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                    mediaPlayer.start();
-                }
+                mediaPlay();
             }
         }
-        checkPlayState();
+
     }
 
     //====================================== Check Player State ==================================//
@@ -523,9 +487,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
         handler.removeCallbacks(myRunnable);
-        mediaPlayer.pause();
+        mediaPause();
         stop = true;
-        checkPlayState();
     }
 
     //====================================== SeekBar onStopTouch  ================================//
@@ -534,12 +497,8 @@ public class MainActivity extends AppCompatActivity
         int currentPosition = progressToTimer(songS.getProgress(), mediaPlayer.getDuration());
         mediaPlayer.seekTo(currentPosition);
         stop = false;
-        focus();
-        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            mediaPlayer.start();
-        }
+        mediaPlay();
         onPrepared(mediaPlayer);
-        checkPlayState();
     }
 
     //====================================== SeekTo onStop  ======================================//
@@ -563,6 +522,35 @@ public class MainActivity extends AppCompatActivity
             }
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+    }
+    public void mediaPlay() {
+        int requestAudioFocusResult = am.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        if (requestAudioFocusResult == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            mediaPlayer.start();
+        }
+    }
+
+    public void mediaPause() {
+        am.abandonAudioFocus(this);
+        mediaPlayer.pause();
+    }
+    @Override
+    public void onAudioFocusChange(int audioFocusChanged) {
+        switch(audioFocusChanged) {
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                mediaPlayer.setVolume(0.2f, 0.2f);
+                break;
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                mediaPause();
+                break;
+            case AudioManager.AUDIOFOCUS_GAIN:
+                mediaPlayer.setVolume(1f, 1f);
+                mediaPlay();
+                break;
+            case AudioManager.AUDIOFOCUS_LOSS:
+                mediaPause();
+                break;
         }
     }
 }
