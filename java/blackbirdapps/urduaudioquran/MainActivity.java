@@ -539,13 +539,12 @@ public class MainActivity extends AppCompatActivity
     public void onAudioFocusChange(int audioFocusChanged) {
         switch(audioFocusChanged) {
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                mediaPlayer.setVolume(0.2f, 0.2f);
+                mediaPlayer.pause();
                 break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                mediaPause();
+                mediaPlayer.pause();
                 break;
             case AudioManager.AUDIOFOCUS_GAIN:
-                mediaPlayer.setVolume(1f, 1f);
                 mediaPlay();
                 break;
             case AudioManager.AUDIOFOCUS_LOSS:
