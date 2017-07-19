@@ -23,77 +23,31 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.MediaController;
-import android.media.MediaPlayer.OnPreparedListener;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnPreparedListener, SeekBar.OnSeekBarChangeListener, AudioManager.OnAudioFocusChangeListener {
+        implements NavigationView.OnNavigationItemSelectedListener, SeekBar.OnSeekBarChangeListener, AudioManager.OnAudioFocusChangeListener {
     //====================================== Declarations ========================================//
     private static MediaPlayer mediaPlayer;
     private static Uri myUri;
-    private static Handler handler = new Handler();
+    private Handler handler = new Handler();
     private ImageButton playButton, nextButton, previousButton, rewindButton;
     private SeekBar songS;
     private static Runnable myRunnable;
-    private static boolean stop = false, running = false;
     private static ArrayList<String> surahList = new ArrayList<>();
     private static int number;
     private TextView durationLabel, elaspedLabel, surahText;
     private ScrollView sv;
     private AudioManager am;
-    //====================================== Media State Handler =================================//
-    public void onPrepared(final MediaPlayer mediaPlayer) {
-        handler.post(myRunnable = new Runnable() {
-            public void run() {
-                if (!(stop)) {
-                    running = true;
-                    checkPlayState();
-                    if (durationLabel != null) {
-                        int hours = (mediaPlayer.getDuration() / (1000 * 60 * 60) * 60);
-                        int minutes = (mediaPlayer.getDuration() % (1000 * 60 * 60)) / (1000 * 60) + hours;
-                        int seconds = (mediaPlayer.getDuration() % (1000 * 60 * 60)) % (1000 * 60) / 1000;
-                        durationLabel.setText(String.format("%02d", minutes) + ":" + String.format("%02d", seconds));
-                    }
-                    if (elaspedLabel != null) {
-                        int ehours = (mediaPlayer.getCurrentPosition() / (1000 * 60 * 60) * 60);
-                        int eminutes = (mediaPlayer.getCurrentPosition() % (1000 * 60 * 60)) / (1000 * 60) + ehours;
-                        int eseconds = (mediaPlayer.getCurrentPosition() % (1000 * 60 * 60)) % (1000 * 60) / 1000;
-                        elaspedLabel.setText(String.format("%02d", eminutes) + ":" + String.format("%02d", eseconds));
-                    }
-                    ;
-                    if (myUri != null) {
-                        String sString = myUri.getLastPathSegment();
-                        StringBuffer stringbf = new StringBuffer();
-                        Matcher m = Pattern.compile("([a-z])([a-z]*)",
-                                Pattern.CASE_INSENSITIVE).matcher(sString);
-                        while (m.find()) {
-                            m.appendReplacement(stringbf,
-                                    m.group(1).toUpperCase() + m.group(2).toLowerCase());
-                        }
-                        sString = m.appendTail(stringbf).toString();
-                        sString = sString.replace("_", "-");
-                        setTitle((number + 1) + " - " + sString);
-                    }
-                    if (mediaPlayer.getCurrentPosition() != 0) {
-                        songS = (SeekBar) findViewById(R.id.songSeek);
-                        songS.setProgress(getProgressPercentage(mediaPlayer.getCurrentPosition(), mediaPlayer.getDuration()));
-                    }
-                    handler.postDelayed(this, 50);
-                }
-            }
-        });
-    }
 
     //====================================== Progress Percentage =================================//
     public int getProgressPercentage(long currentDuration, long totalDuration) {
@@ -110,6 +64,12 @@ public class MainActivity extends AppCompatActivity
         super.onResume();
         if (myUri != null) {
             getText();
+            if (mediaPlayer.isPlaying()) {
+                mediaControlOn();
+            } else {
+                mediaControlUpdate();
+            }
+
         }
     }
 
@@ -258,7 +218,6 @@ public class MainActivity extends AppCompatActivity
             mediaPlayer = new MediaPlayer();
             songS.setEnabled(false);
         }
-        mediaPlayer.setOnPreparedListener(this);
 
         if (songS != null) {
             songS.setOnSeekBarChangeListener(this);
@@ -310,9 +269,6 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         });
-        if (running) {
-            onPrepared(mediaPlayer);
-        }
         am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         try {
             Typeface mFont = Typeface.createFromAsset(getAssets(), "Nafees.ttf");
@@ -321,19 +277,9 @@ public class MainActivity extends AppCompatActivity
         } catch (Exception ignored) {
         }
         sv = (ScrollView) findViewById(R.id.scroll);
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            public void onCompletion(MediaPlayer mp) {
-                try {
-                    myUri = Uri.parse("android.resource://blackbirdapps.urduaudioquran/raw/" + surahList.get(number + 1));
-                    play();
-                } catch (IndexOutOfBoundsException e) {
-                    myUri = Uri.parse("android.resource://blackbirdapps.urduaudioquran/raw/" + surahList.get(0));
-                    play();
-                }
 
-            }
-        });
     }
+
     //====================================== Previous Surah ======================================//
     public void previousMethod() {
         try {
@@ -344,6 +290,7 @@ public class MainActivity extends AppCompatActivity
             play();
         }
     }
+
     //====================================== Next Surah ==========================================//
     public void nextMethod() {
         try {
@@ -354,6 +301,7 @@ public class MainActivity extends AppCompatActivity
             play();
         }
     }
+
     //====================================== Get Surah Number ====================================//
     public void checkArray() {
         String surahName = myUri.getLastPathSegment();
@@ -384,20 +332,19 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_share ) {
+        if (id == R.id.action_share) {
             try {
                 Intent i = new Intent(Intent.ACTION_SEND);
                 i.setType("text/plain");
                 i.putExtra(Intent.EXTRA_SUBJECT, "Urdu Audio Quran");
                 String sAux = "\nCheck out this Quran Application I'm using:\n";
-                sAux = sAux + "https://play.google.com/store/apps/details?id=blackbirdapps.urduaudioquran\n\n";
+                sAux = sAux + "https://play.google.com/store/apps/details?id=blackbirdapps.urduaudioquran";
                 i.putExtra(Intent.EXTRA_TEXT, sAux);
                 startActivity(Intent.createChooser(i, "Share Via"));
                 return true;
-            } catch(Exception ignored) {
+            } catch (Exception ignored) {
             }
-        }
-        else if (id == R.id.action_settings) {
+        } else if (id == R.id.action_settings) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             // Get the layout inflater
             LayoutInflater inflater = this.getLayoutInflater();
@@ -419,25 +366,30 @@ public class MainActivity extends AppCompatActivity
 
     //====================================== Play ================================================//
     public void play() {
-            if (!songS.isEnabled()) {
-                songS.setEnabled(true);
-            }
-            try {
-                mediaPlayer.reset();
-                mediaPlayer.setDataSource(getApplicationContext(), myUri);
-                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                handler.removeCallbacks(myRunnable);
-                mediaPlayer.prepare();
-                mediaPlay();
-                checkArray();
-                getText();
-                sv.fullScroll(ScrollView.FOCUS_UP);
-            } catch (Exception e) {
-                Toast.makeText(this, e.toString(),
-                        Toast.LENGTH_LONG).show();
-                Log.e("Quran", "Play Error!", e);
-            }
+        if (!songS.isEnabled()) {
+            songS.setEnabled(true);
         }
+        try {
+            mediaPlayer.reset();
+            mediaPlayer.setDataSource(getApplicationContext(), myUri);
+            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            handler.removeCallbacks(myRunnable);
+            mediaPlayer.prepare();
+            mediaPlay();
+            checkArray();
+            getText();
+            sv.fullScroll(ScrollView.FOCUS_UP);
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                public void onCompletion(MediaPlayer mp) {
+                  nextMethod();
+                }
+            });
+        } catch (Exception e) {
+            Toast.makeText(this, e.toString(),
+                    Toast.LENGTH_LONG).show();
+            Log.e("Quran", "Play Error!", e);
+        }
+    }
 
     //====================================== Navigation Selection ================================//
     @SuppressWarnings("StatementWithEmptyBody")
@@ -467,7 +419,6 @@ public class MainActivity extends AppCompatActivity
                 mediaPlay();
             }
         }
-
     }
 
     //====================================== Check Player State ==================================//
@@ -486,9 +437,7 @@ public class MainActivity extends AppCompatActivity
     //====================================== SeekBar onStartTouch  ===============================//
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
-        handler.removeCallbacks(myRunnable);
         mediaPause();
-        stop = true;
     }
 
     //====================================== SeekBar onStopTouch  ================================//
@@ -496,9 +445,7 @@ public class MainActivity extends AppCompatActivity
     public void onStopTrackingTouch(SeekBar seekBar) {
         int currentPosition = progressToTimer(songS.getProgress(), mediaPlayer.getDuration());
         mediaPlayer.seekTo(currentPosition);
-        stop = false;
         mediaPlay();
-        onPrepared(mediaPlayer);
     }
 
     //====================================== SeekTo onStop  ======================================//
@@ -524,20 +471,72 @@ public class MainActivity extends AppCompatActivity
             ex.printStackTrace();
         }
     }
+
     public void mediaPlay() {
         int requestAudioFocusResult = am.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
         if (requestAudioFocusResult == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
             mediaPlayer.start();
         }
+        mediaControlOn();
+        Toast.makeText(this, "Started", Toast.LENGTH_SHORT).show();
     }
 
     public void mediaPause() {
         am.abandonAudioFocus(this);
         mediaPlayer.pause();
+        mediaControlOff();
     }
+
+    public void mediaControlUpdate() {
+        if (durationLabel != null) {
+            int hours = (mediaPlayer.getDuration() / (1000 * 60 * 60) * 60);
+            int minutes = (mediaPlayer.getDuration() % (1000 * 60 * 60)) / (1000 * 60) + hours;
+            int seconds = (mediaPlayer.getDuration() % (1000 * 60 * 60)) % (1000 * 60) / 1000;
+            durationLabel.setText(String.format("%02d", minutes) + ":" + String.format("%02d", seconds));
+        }
+        if (elaspedLabel != null) {
+            int ehours = (mediaPlayer.getCurrentPosition() / (1000 * 60 * 60) * 60);
+            int eminutes = (mediaPlayer.getCurrentPosition() % (1000 * 60 * 60)) / (1000 * 60) + ehours;
+            int eseconds = (mediaPlayer.getCurrentPosition() % (1000 * 60 * 60)) % (1000 * 60) / 1000;
+            elaspedLabel.setText(String.format("%02d", eminutes) + ":" + String.format("%02d", eseconds));
+        }
+        if (myUri != null) {
+            String sString = myUri.getLastPathSegment();
+            StringBuffer stringbf = new StringBuffer();
+            Matcher m = Pattern.compile("([a-z])([a-z]*)",
+                    Pattern.CASE_INSENSITIVE).matcher(sString);
+            while (m.find()) {
+                m.appendReplacement(stringbf,
+                        m.group(1).toUpperCase() + m.group(2).toLowerCase());
+            }
+            sString = m.appendTail(stringbf).toString();
+            sString = sString.replace("_", "-");
+            setTitle((number + 1) + " - " + sString);
+        }
+        if (mediaPlayer.getCurrentPosition() != 0) {
+            songS = (SeekBar) findViewById(R.id.songSeek);
+            songS.setProgress(getProgressPercentage(mediaPlayer.getCurrentPosition(), mediaPlayer.getDuration()));
+        }
+        checkPlayState();
+    }
+
+    public void mediaControlOn() {
+        handler.post(myRunnable = new Runnable() {
+            public void run() {
+                mediaControlUpdate();
+                handler.postDelayed(this, 50);
+            }
+        });
+    }
+
+    public void mediaControlOff() {
+        handler.removeCallbacks(myRunnable);
+        checkPlayState();
+    }
+
     @Override
     public void onAudioFocusChange(int audioFocusChanged) {
-        switch(audioFocusChanged) {
+        switch (audioFocusChanged) {
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                 mediaPlayer.pause();
                 break;
