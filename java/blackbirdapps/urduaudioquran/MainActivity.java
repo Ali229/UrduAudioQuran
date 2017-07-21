@@ -23,31 +23,78 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.media.MediaPlayer.OnPreparedListener;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, SeekBar.OnSeekBarChangeListener, AudioManager.OnAudioFocusChangeListener {
+        implements NavigationView.OnNavigationItemSelectedListener, OnPreparedListener, SeekBar.OnSeekBarChangeListener, AudioManager.OnAudioFocusChangeListener, MediaPlayer.OnCompletionListener {
     //====================================== Declarations ========================================//
-    private static MediaPlayer mediaPlayer;
+    private final static MediaPlayer mediaPlayer = new MediaPlayer();
+    ;
     private static Uri myUri;
-    private Handler handler = new Handler();
+    private static Handler handler = new Handler();
     private ImageButton playButton, nextButton, previousButton, rewindButton;
     private SeekBar songS;
     private static Runnable myRunnable;
+    private static boolean stop = false, running = false;
     private static ArrayList<String> surahList = new ArrayList<>();
     private static int number;
     private TextView durationLabel, elaspedLabel, surahText;
     private ScrollView sv;
     private AudioManager am;
+    String text;
+    private static int requestAudioFocusResult = 0;
+    //====================================== Media State Handler =================================//
+    public void onPrepared(final MediaPlayer mediaPlayer) {
+        handler.post(myRunnable = new Runnable() {
+            public void run() {
+                if (!(stop)) {
+                    running = true;
+                    checkPlayState();
+                    if (durationLabel != null) {
+                        int hours = (mediaPlayer.getDuration() / (1000 * 60 * 60) * 60);
+                        int minutes = (mediaPlayer.getDuration() % (1000 * 60 * 60)) / (1000 * 60) + hours;
+                        int seconds = (mediaPlayer.getDuration() % (1000 * 60 * 60)) % (1000 * 60) / 1000;
+                        durationLabel.setText(String.format("%02d", minutes) + ":" + String.format("%02d", seconds));
+                    }
+                    if (elaspedLabel != null) {
+                        int ehours = (mediaPlayer.getCurrentPosition() / (1000 * 60 * 60) * 60);
+                        int eminutes = (mediaPlayer.getCurrentPosition() % (1000 * 60 * 60)) / (1000 * 60) + ehours;
+                        int eseconds = (mediaPlayer.getCurrentPosition() % (1000 * 60 * 60)) % (1000 * 60) / 1000;
+                        elaspedLabel.setText(String.format("%02d", eminutes) + ":" + String.format("%02d", eseconds));
+                    }
+                    if (myUri != null) {
+                        String sString = myUri.getLastPathSegment();
+                        StringBuffer stringbf = new StringBuffer();
+                        Matcher m = Pattern.compile("([a-z])([a-z]*)",
+                                Pattern.CASE_INSENSITIVE).matcher(sString);
+                        while (m.find()) {
+                            m.appendReplacement(stringbf,
+                                    m.group(1).toUpperCase() + m.group(2).toLowerCase());
+                        }
+                        sString = m.appendTail(stringbf).toString();
+                        sString = sString.replace("_", "-");
+                        setTitle((number + 1) + " - " + sString);
+                    }
+                    if (mediaPlayer.getCurrentPosition() != 0) {
+                        songS = (SeekBar) findViewById(R.id.songSeek);
+                        songS.setProgress(getProgressPercentage(mediaPlayer.getCurrentPosition(), mediaPlayer.getDuration()));
+                    }
+                    handler.postDelayed(this, 50);
+                }
+            }
+        });
+    }
 
     //====================================== Progress Percentage =================================//
     public int getProgressPercentage(long currentDuration, long totalDuration) {
@@ -64,18 +111,13 @@ public class MainActivity extends AppCompatActivity
         super.onResume();
         if (myUri != null) {
             getText();
-            if (mediaPlayer.isPlaying()) {
-                mediaControlOn();
-            } else {
-                mediaControlUpdate();
-            }
-
+            songS.setEnabled(true);
         }
     }
 
     //====================================== Populate Surah List =================================//
     public void populateList() {
-        if (surahList.size() == 0) {
+        if (surahList.size() < 1) {
             surahList.add("al_fatihah");
             surahList.add("al_baqarah");
             surahList.add("al_imran");
@@ -193,6 +235,24 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    //    @Override
+//    public void onRestoreInstanceState(Bundle savedInstanceState) {
+//        //mTextView.setText(savedInstanceState.getString(TEXT_VIEW_KEY));
+//        Toast.makeText(this, "restored", Toast.LENGTH_SHORT).show();
+//        surahText.setText(savedInstanceState.getString(text));
+//    }
+//    @Override
+//    public void onSaveInstanceState(Bundle outState) {
+//        try {
+//            Toast.makeText(this, "saved", Toast.LENGTH_SHORT).show();
+//            outState.putString(text, surahText.getText().toString());
+//            super.onSaveInstanceState(outState);
+//        } catch (Exception e) {
+//            Log.e("Quran", "onSaveInstance Error!", e);
+//        }
+//
+//    }
+
     //====================================== onCreate ============================================//
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -207,6 +267,7 @@ public class MainActivity extends AppCompatActivity
         if (drawer != null) {
             drawer.setDrawerListener(toggle);
         }
+
         toggle.syncState();
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         if (navigationView != null) {
@@ -214,10 +275,8 @@ public class MainActivity extends AppCompatActivity
         }
         populateList();
         songS = (SeekBar) findViewById(R.id.songSeek);
-        if (mediaPlayer == null) {
-            mediaPlayer = new MediaPlayer();
-            songS.setEnabled(false);
-        }
+        songS.setEnabled(false);
+        mediaPlayer.setOnPreparedListener(this);
 
         if (songS != null) {
             songS.setOnSeekBarChangeListener(this);
@@ -269,15 +328,26 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         });
+        if (running) {
+            onPrepared(mediaPlayer);
+        }
         am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         try {
             Typeface mFont = Typeface.createFromAsset(getAssets(), "Nafees.ttf");
             surahText = (TextView) findViewById(R.id.surahT);
             surahText.setTypeface(mFont);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            Log.e("Quran", "typeFace Error!", e);
+        }
+        try {
+            if (savedInstanceState != null) {
+                surahText.setText(savedInstanceState.getString(text));
+            }
+        } catch (Exception e) {
+            Log.e("Quran", "onCreate Save Error!", e);
         }
         sv = (ScrollView) findViewById(R.id.scroll);
-
+        mediaPlayer.setOnCompletionListener(this);
     }
 
     //====================================== Previous Surah ======================================//
@@ -342,7 +412,8 @@ public class MainActivity extends AppCompatActivity
                 i.putExtra(Intent.EXTRA_TEXT, sAux);
                 startActivity(Intent.createChooser(i, "Share Via"));
                 return true;
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                Log.e("Quran", "onOptionsItemSelected error!", e);
             }
         } else if (id == R.id.action_settings) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -379,14 +450,8 @@ public class MainActivity extends AppCompatActivity
             checkArray();
             getText();
             sv.fullScroll(ScrollView.FOCUS_UP);
-            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                public void onCompletion(MediaPlayer mp) {
-                  nextMethod();
-                }
-            });
+            //Toast.makeText(this, "went to play", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-            Toast.makeText(this, e.toString(),
-                    Toast.LENGTH_LONG).show();
             Log.e("Quran", "Play Error!", e);
         }
     }
@@ -419,6 +484,7 @@ public class MainActivity extends AppCompatActivity
                 mediaPlay();
             }
         }
+
     }
 
     //====================================== Check Player State ==================================//
@@ -437,7 +503,9 @@ public class MainActivity extends AppCompatActivity
     //====================================== SeekBar onStartTouch  ===============================//
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
+        handler.removeCallbacks(myRunnable);
         mediaPause();
+        stop = true;
     }
 
     //====================================== SeekBar onStopTouch  ================================//
@@ -445,7 +513,9 @@ public class MainActivity extends AppCompatActivity
     public void onStopTrackingTouch(SeekBar seekBar) {
         int currentPosition = progressToTimer(songS.getProgress(), mediaPlayer.getDuration());
         mediaPlayer.seekTo(currentPosition);
+        stop = false;
         mediaPlay();
+        onPrepared(mediaPlayer);
     }
 
     //====================================== SeekTo onStop  ======================================//
@@ -467,70 +537,27 @@ public class MainActivity extends AppCompatActivity
             while ((line = reader.readLine()) != null) {
                 surahText.append(line);
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception e) {
+            Log.e("Quran", "getText!", e);
         }
     }
 
     public void mediaPlay() {
-        int requestAudioFocusResult = am.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-        if (requestAudioFocusResult == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            mediaPlayer.start();
-        }
-        mediaControlOn();
-        Toast.makeText(this, "Started", Toast.LENGTH_SHORT).show();
-    }
-
-    public void mediaPause() {
-        am.abandonAudioFocus(this);
-        mediaPlayer.pause();
-        mediaControlOff();
-    }
-
-    public void mediaControlUpdate() {
-        if (durationLabel != null) {
-            int hours = (mediaPlayer.getDuration() / (1000 * 60 * 60) * 60);
-            int minutes = (mediaPlayer.getDuration() % (1000 * 60 * 60)) / (1000 * 60) + hours;
-            int seconds = (mediaPlayer.getDuration() % (1000 * 60 * 60)) % (1000 * 60) / 1000;
-            durationLabel.setText(String.format("%02d", minutes) + ":" + String.format("%02d", seconds));
-        }
-        if (elaspedLabel != null) {
-            int ehours = (mediaPlayer.getCurrentPosition() / (1000 * 60 * 60) * 60);
-            int eminutes = (mediaPlayer.getCurrentPosition() % (1000 * 60 * 60)) / (1000 * 60) + ehours;
-            int eseconds = (mediaPlayer.getCurrentPosition() % (1000 * 60 * 60)) % (1000 * 60) / 1000;
-            elaspedLabel.setText(String.format("%02d", eminutes) + ":" + String.format("%02d", eseconds));
-        }
-        if (myUri != null) {
-            String sString = myUri.getLastPathSegment();
-            StringBuffer stringbf = new StringBuffer();
-            Matcher m = Pattern.compile("([a-z])([a-z]*)",
-                    Pattern.CASE_INSENSITIVE).matcher(sString);
-            while (m.find()) {
-                m.appendReplacement(stringbf,
-                        m.group(1).toUpperCase() + m.group(2).toLowerCase());
+        if (requestAudioFocusResult == 0) {
+            requestAudioFocusResult = am.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+            if (requestAudioFocusResult == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                mediaPlayer.start();
             }
-            sString = m.appendTail(stringbf).toString();
-            sString = sString.replace("_", "-");
-            setTitle((number + 1) + " - " + sString);
-        }
-        if (mediaPlayer.getCurrentPosition() != 0) {
-            songS = (SeekBar) findViewById(R.id.songSeek);
-            songS.setProgress(getProgressPercentage(mediaPlayer.getCurrentPosition(), mediaPlayer.getDuration()));
+        } else {
+            mediaPlayer.start();
         }
         checkPlayState();
     }
 
-    public void mediaControlOn() {
-        handler.post(myRunnable = new Runnable() {
-            public void run() {
-                mediaControlUpdate();
-                handler.postDelayed(this, 50);
-            }
-        });
-    }
-
-    public void mediaControlOff() {
+    public void mediaPause() {
         handler.removeCallbacks(myRunnable);
+        am.abandonAudioFocus(this);
+        mediaPlayer.pause();
         checkPlayState();
     }
 
@@ -539,16 +566,67 @@ public class MainActivity extends AppCompatActivity
         switch (audioFocusChanged) {
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                 mediaPlayer.pause();
+                requestAudioFocusResult = 0;
                 break;
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                 mediaPlayer.pause();
+                requestAudioFocusResult = 0;
                 break;
             case AudioManager.AUDIOFOCUS_GAIN:
                 mediaPlay();
+                requestAudioFocusResult = 1;
                 break;
             case AudioManager.AUDIOFOCUS_LOSS:
                 mediaPause();
+                requestAudioFocusResult = 0;
                 break;
         }
     }
+
+    @Override
+    public void onCompletion(final MediaPlayer mediaPlayer) {
+        try {
+            nextMethod();
+//            myUri = Uri.parse("android.resource://blackbirdapps.urduaudioquran/raw/" + surahList.get(number + 1));
+//            mediaPlayer.reset();
+//            mediaPlayer.setDataSource(getApplicationContext(), myUri);
+//            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+//            handler.removeCallbacks(myRunnable);
+//            mediaPlayer.prepare();
+//            mediaPlayer.start();
+//            checkPlayState();
+        } catch (Exception e) {
+            Log.e("Quran", "OnCompletion Error!", e);
+        }
+    }
+//    @Override
+//    public void onPause() {
+//        try {
+//        Toast.makeText(this, "paused", Toast.LENGTH_SHORT).show();
+//        Bundle outState = new Bundle();
+//        outState.putString(text, surahText.getText().toString());
+//        onSaveInstanceState(outState);
+//
+//    } catch (Exception e) {
+//        Log.e("Quran", "onPause Error!", e);
+//    }
+//        super.onPause();
+//    }
+//    @Override
+//    public void onStop() {
+//        Toast.makeText(this, "stopped", Toast.LENGTH_SHORT).show();
+//        super.onStop();
+//    }
+//
+//    @Override
+//    public void onDestroy() {
+//        try {
+//
+//
+//            Toast.makeText(this, "destroyed", Toast.LENGTH_SHORT).show();
+//            super.onDestroy();
+//        } catch (Exception e) {
+//            Log.e("Quran", "onDestroy!", e);
+//        }
+//    }
 }
