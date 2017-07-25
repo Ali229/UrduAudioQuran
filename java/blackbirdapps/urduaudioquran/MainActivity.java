@@ -30,7 +30,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -40,26 +39,23 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnPreparedListener, SeekBar.OnSeekBarChangeListener, AudioManager.OnAudioFocusChangeListener, MediaPlayer.OnCompletionListener {
     //====================================== Declarations ========================================//
     private final static MediaPlayer mediaPlayer = new MediaPlayer();
-    ;
-    private static Uri myUri;
+    public static Uri myUri;
     private static Handler handler = new Handler();
     private ImageButton playButton, nextButton, previousButton, rewindButton;
     private SeekBar songS;
     private static Runnable myRunnable;
-    private static boolean stop = false, running = false;
     private static ArrayList<String> surahList = new ArrayList<>();
     private static int number;
     private TextView durationLabel, elaspedLabel, surahText;
     private ScrollView sv;
     private AudioManager am;
-    String text;
     private static int requestAudioFocusResult = 0;
+
     //====================================== Media State Handler =================================//
     public void onPrepared(final MediaPlayer mediaPlayer) {
         handler.post(myRunnable = new Runnable() {
             public void run() {
-                if (!(stop)) {
-                    running = true;
+                //if (mediaPlayer.isPlaying()) {
                     checkPlayState();
                     if (durationLabel != null) {
                         int hours = (mediaPlayer.getDuration() / (1000 * 60 * 60) * 60);
@@ -87,12 +83,11 @@ public class MainActivity extends AppCompatActivity
                         setTitle((number + 1) + " - " + sString);
                     }
                     if (mediaPlayer.getCurrentPosition() != 0) {
-                        songS = (SeekBar) findViewById(R.id.songSeek);
                         songS.setProgress(getProgressPercentage(mediaPlayer.getCurrentPosition(), mediaPlayer.getDuration()));
                     }
-                    handler.postDelayed(this, 50);
+                    handler.postDelayed(this, 200);
                 }
-            }
+           // }
         });
     }
 
@@ -108,11 +103,12 @@ public class MainActivity extends AppCompatActivity
     //====================================== onResume ============================================//
     @Override
     public void onResume() {
-        super.onResume();
         if (myUri != null) {
+            onPrepared(mediaPlayer);
             getText();
             songS.setEnabled(true);
         }
+        super.onResume();
     }
 
     //====================================== Populate Surah List =================================//
@@ -235,24 +231,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    //    @Override
-//    public void onRestoreInstanceState(Bundle savedInstanceState) {
-//        //mTextView.setText(savedInstanceState.getString(TEXT_VIEW_KEY));
-//        Toast.makeText(this, "restored", Toast.LENGTH_SHORT).show();
-//        surahText.setText(savedInstanceState.getString(text));
-//    }
-//    @Override
-//    public void onSaveInstanceState(Bundle outState) {
-//        try {
-//            Toast.makeText(this, "saved", Toast.LENGTH_SHORT).show();
-//            outState.putString(text, surahText.getText().toString());
-//            super.onSaveInstanceState(outState);
-//        } catch (Exception e) {
-//            Log.e("Quran", "onSaveInstance Error!", e);
-//        }
-//
-//    }
-
     //====================================== onCreate ============================================//
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -328,9 +306,6 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         });
-        if (running) {
-            onPrepared(mediaPlayer);
-        }
         am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         try {
             Typeface mFont = Typeface.createFromAsset(getAssets(), "Nafees.ttf");
@@ -338,13 +313,6 @@ public class MainActivity extends AppCompatActivity
             surahText.setTypeface(mFont);
         } catch (Exception e) {
             Log.e("Quran", "typeFace Error!", e);
-        }
-        try {
-            if (savedInstanceState != null) {
-                surahText.setText(savedInstanceState.getString(text));
-            }
-        } catch (Exception e) {
-            Log.e("Quran", "onCreate Save Error!", e);
         }
         sv = (ScrollView) findViewById(R.id.scroll);
         mediaPlayer.setOnCompletionListener(this);
@@ -401,56 +369,25 @@ public class MainActivity extends AppCompatActivity
     //====================================== Options Selected ====================================//
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_share) {
-            try {
-                Intent i = new Intent(Intent.ACTION_SEND);
-                i.setType("text/plain");
-                i.putExtra(Intent.EXTRA_SUBJECT, "Urdu Audio Quran");
-                String sAux = "\nCheck out this Quran Application I'm using:\n";
-                sAux = sAux + "https://play.google.com/store/apps/details?id=blackbirdapps.urduaudioquran";
-                i.putExtra(Intent.EXTRA_TEXT, sAux);
-                startActivity(Intent.createChooser(i, "Share Via"));
-                return true;
-            } catch (Exception e) {
-                Log.e("Quran", "onOptionsItemSelected error!", e);
-            }
-        } else if (id == R.id.action_settings) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            // Get the layout inflater
-            LayoutInflater inflater = this.getLayoutInflater();
-
-            // Inflate and set the layout for the dialog
-            // Pass null as the parent view because its going in the dialog layout
-            builder.setView(inflater.inflate(R.layout.dialog, null))
-                    // Add action buttons
-                    .setPositiveButton("Done", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int id) {
-                        }
-                    });
-            final AlertDialog dialog = builder.create();
-            dialog.show();
-        }
+        Dialogs d1 = new Dialogs();
+        d1.menuItem(this, item);
         return super.onOptionsItemSelected(item);
     }
 
     //====================================== Play ================================================//
     public void play() {
-        if (!songS.isEnabled()) {
-            songS.setEnabled(true);
-        }
         try {
+            if (!songS.isEnabled()) {
+                songS.setEnabled(true);
+            }
             mediaPlayer.reset();
             mediaPlayer.setDataSource(getApplicationContext(), myUri);
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            handler.removeCallbacks(myRunnable);
             mediaPlayer.prepare();
             mediaPlay();
             checkArray();
             getText();
             sv.fullScroll(ScrollView.FOCUS_UP);
-            //Toast.makeText(this, "went to play", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Log.e("Quran", "Play Error!", e);
         }
@@ -503,18 +440,14 @@ public class MainActivity extends AppCompatActivity
     //====================================== SeekBar onStartTouch  ===============================//
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {
-        handler.removeCallbacks(myRunnable);
-        mediaPause();
-        stop = true;
+        handler.removeMessages(0);
     }
 
     //====================================== SeekBar onStopTouch  ================================//
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-        int currentPosition = progressToTimer(songS.getProgress(), mediaPlayer.getDuration());
+        int currentPosition = progressToTimer(seekBar.getProgress(), mediaPlayer.getDuration());
         mediaPlayer.seekTo(currentPosition);
-        stop = false;
-        mediaPlay();
         onPrepared(mediaPlayer);
     }
 
@@ -551,13 +484,14 @@ public class MainActivity extends AppCompatActivity
         } else {
             mediaPlayer.start();
         }
-        checkPlayState();
+        onPrepared(mediaPlayer);
     }
 
     public void mediaPause() {
-        handler.removeCallbacks(myRunnable);
         am.abandonAudioFocus(this);
+        handler.removeMessages(0);
         mediaPlayer.pause();
+        requestAudioFocusResult = 0;
         checkPlayState();
     }
 
@@ -587,46 +521,8 @@ public class MainActivity extends AppCompatActivity
     public void onCompletion(final MediaPlayer mediaPlayer) {
         try {
             nextMethod();
-//            myUri = Uri.parse("android.resource://blackbirdapps.urduaudioquran/raw/" + surahList.get(number + 1));
-//            mediaPlayer.reset();
-//            mediaPlayer.setDataSource(getApplicationContext(), myUri);
-//            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//            handler.removeCallbacks(myRunnable);
-//            mediaPlayer.prepare();
-//            mediaPlayer.start();
-//            checkPlayState();
         } catch (Exception e) {
             Log.e("Quran", "OnCompletion Error!", e);
         }
     }
-//    @Override
-//    public void onPause() {
-//        try {
-//        Toast.makeText(this, "paused", Toast.LENGTH_SHORT).show();
-//        Bundle outState = new Bundle();
-//        outState.putString(text, surahText.getText().toString());
-//        onSaveInstanceState(outState);
-//
-//    } catch (Exception e) {
-//        Log.e("Quran", "onPause Error!", e);
-//    }
-//        super.onPause();
-//    }
-//    @Override
-//    public void onStop() {
-//        Toast.makeText(this, "stopped", Toast.LENGTH_SHORT).show();
-//        super.onStop();
-//    }
-//
-//    @Override
-//    public void onDestroy() {
-//        try {
-//
-//
-//            Toast.makeText(this, "destroyed", Toast.LENGTH_SHORT).show();
-//            super.onDestroy();
-//        } catch (Exception e) {
-//            Log.e("Quran", "onDestroy!", e);
-//        }
-//    }
 }
