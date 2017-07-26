@@ -1,9 +1,9 @@
 package blackbirdapps.urduaudioquran;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -11,7 +11,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -24,19 +23,20 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.media.MediaPlayer.OnPreparedListener;
+import android.widget.RadioButton;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnPreparedListener, SeekBar.OnSeekBarChangeListener, AudioManager.OnAudioFocusChangeListener, MediaPlayer.OnCompletionListener {
+        implements NavigationView.OnNavigationItemSelectedListener, OnPreparedListener,
+        SeekBar.OnSeekBarChangeListener, AudioManager.OnAudioFocusChangeListener,
+        MediaPlayer.OnCompletionListener {
     //====================================== Declarations ========================================//
     private final static MediaPlayer mediaPlayer = new MediaPlayer();
     public static Uri myUri;
@@ -44,50 +44,52 @@ public class MainActivity extends AppCompatActivity
     private ImageButton playButton, nextButton, previousButton, rewindButton;
     private SeekBar songS;
     private static Runnable myRunnable;
-    private static ArrayList<String> surahList = new ArrayList<>();
-    private static int number;
+    public static ArrayList<String> surahList = new ArrayList<>();
+    public static int number;
     private TextView durationLabel, elaspedLabel, surahText;
     private ScrollView sv;
     private AudioManager am;
     private static int requestAudioFocusResult = 0;
+    private static Surahs s1 = new Surahs();
+    private static Dialogs d1 = new Dialogs();
 
     //====================================== Media State Handler =================================//
     public void onPrepared(final MediaPlayer mediaPlayer) {
         handler.post(myRunnable = new Runnable() {
             public void run() {
                 //if (mediaPlayer.isPlaying()) {
-                    checkPlayState();
-                    if (durationLabel != null) {
-                        int hours = (mediaPlayer.getDuration() / (1000 * 60 * 60) * 60);
-                        int minutes = (mediaPlayer.getDuration() % (1000 * 60 * 60)) / (1000 * 60) + hours;
-                        int seconds = (mediaPlayer.getDuration() % (1000 * 60 * 60)) % (1000 * 60) / 1000;
-                        durationLabel.setText(String.format("%02d", minutes) + ":" + String.format("%02d", seconds));
-                    }
-                    if (elaspedLabel != null) {
-                        int ehours = (mediaPlayer.getCurrentPosition() / (1000 * 60 * 60) * 60);
-                        int eminutes = (mediaPlayer.getCurrentPosition() % (1000 * 60 * 60)) / (1000 * 60) + ehours;
-                        int eseconds = (mediaPlayer.getCurrentPosition() % (1000 * 60 * 60)) % (1000 * 60) / 1000;
-                        elaspedLabel.setText(String.format("%02d", eminutes) + ":" + String.format("%02d", eseconds));
-                    }
-                    if (myUri != null) {
-                        String sString = myUri.getLastPathSegment();
-                        StringBuffer stringbf = new StringBuffer();
-                        Matcher m = Pattern.compile("([a-z])([a-z]*)",
-                                Pattern.CASE_INSENSITIVE).matcher(sString);
-                        while (m.find()) {
-                            m.appendReplacement(stringbf,
-                                    m.group(1).toUpperCase() + m.group(2).toLowerCase());
-                        }
-                        sString = m.appendTail(stringbf).toString();
-                        sString = sString.replace("_", "-");
-                        setTitle((number + 1) + " - " + sString);
-                    }
-                    if (mediaPlayer.getCurrentPosition() != 0) {
-                        songS.setProgress(getProgressPercentage(mediaPlayer.getCurrentPosition(), mediaPlayer.getDuration()));
-                    }
-                    handler.postDelayed(this, 200);
+                checkPlayState();
+                if (durationLabel != null) {
+                    int hours = (mediaPlayer.getDuration() / (1000 * 60 * 60) * 60);
+                    int minutes = (mediaPlayer.getDuration() % (1000 * 60 * 60)) / (1000 * 60) + hours;
+                    int seconds = (mediaPlayer.getDuration() % (1000 * 60 * 60)) % (1000 * 60) / 1000;
+                    durationLabel.setText(String.format("%02d", minutes) + ":" + String.format("%02d", seconds));
                 }
-           // }
+                if (elaspedLabel != null) {
+                    int ehours = (mediaPlayer.getCurrentPosition() / (1000 * 60 * 60) * 60);
+                    int eminutes = (mediaPlayer.getCurrentPosition() % (1000 * 60 * 60)) / (1000 * 60) + ehours;
+                    int eseconds = (mediaPlayer.getCurrentPosition() % (1000 * 60 * 60)) % (1000 * 60) / 1000;
+                    elaspedLabel.setText(String.format("%02d", eminutes) + ":" + String.format("%02d", eseconds));
+                }
+                if (myUri != null) {
+                    String sString = myUri.getLastPathSegment();
+                    StringBuffer stringbf = new StringBuffer();
+                    Matcher m = Pattern.compile("([a-z])([a-z]*)",
+                            Pattern.CASE_INSENSITIVE).matcher(sString);
+                    while (m.find()) {
+                        m.appendReplacement(stringbf,
+                                m.group(1).toUpperCase() + m.group(2).toLowerCase());
+                    }
+                    sString = m.appendTail(stringbf).toString();
+                    sString = sString.replace("_", "-");
+                    setTitle((number + 1) + " - " + sString);
+                }
+                if (mediaPlayer.getCurrentPosition() != 0) {
+                    songS.setProgress(getProgressPercentage(mediaPlayer.getCurrentPosition(), mediaPlayer.getDuration()));
+                }
+                handler.postDelayed(this, 200);
+            }
+            // }
         });
     }
 
@@ -113,122 +115,7 @@ public class MainActivity extends AppCompatActivity
 
     //====================================== Populate Surah List =================================//
     public void populateList() {
-        if (surahList.size() < 1) {
-            surahList.add("al_fatihah");
-            surahList.add("al_baqarah");
-            surahList.add("al_imran");
-            surahList.add("an_nisa");
-            surahList.add("al_maidah");
-            surahList.add("al_anam");
-            surahList.add("al_araf");
-            surahList.add("al_anfal");
-            surahList.add("al_tawbah");
-            surahList.add("yunus");
-            surahList.add("hud");
-            surahList.add("yusuf");
-            surahList.add("al_rad");
-            surahList.add("ibrahim");
-            surahList.add("al_hijr");
-            surahList.add("an_nahl");
-            surahList.add("al_isra");
-            surahList.add("al_kahf");
-            surahList.add("maryam");
-            surahList.add("taha");
-            surahList.add("al_anbya");
-            surahList.add("al_haj");
-            surahList.add("al_muminun");
-            surahList.add("an_nur");
-            surahList.add("al_furqan");
-            surahList.add("ash_shuara");
-            surahList.add("an_naml");
-            surahList.add("al_qasas");
-            surahList.add("al_ankabut");
-            surahList.add("ar_rum");
-            surahList.add("luqman");
-            surahList.add("as_sajdah");
-            surahList.add("al_ahzab");
-            surahList.add("saba");
-            surahList.add("fatir");
-            surahList.add("ya_sin");
-            surahList.add("as_saffat");
-            surahList.add("sad");
-            surahList.add("az_zumar");
-            surahList.add("ghafir");
-            surahList.add("fussilat");
-            surahList.add("ash_shuraa");
-            surahList.add("az_zukhruf");
-            surahList.add("ad_dukhan");
-            surahList.add("al_jathiyah");
-            surahList.add("al_ahqaf");
-            surahList.add("muhammad");
-            surahList.add("al_fath");
-            surahList.add("al_hujurat");
-            surahList.add("qaf");
-            surahList.add("adh_dhariyat");
-            surahList.add("at_tur");
-            surahList.add("an_najm");
-            surahList.add("al_qamar");
-            surahList.add("ar_rahman");
-            surahList.add("al_waqiah");
-            surahList.add("al_hadid");
-            surahList.add("al_mujadila");
-            surahList.add("al_hashr");
-            surahList.add("al_mumtahanah");
-            surahList.add("as_saf");
-            surahList.add("al_jumuah");
-            surahList.add("al_munafiqun");
-            surahList.add("at_taghabun");
-            surahList.add("at_talaq");
-            surahList.add("at_tahrim");
-            surahList.add("al_mulk");
-            surahList.add("al_qalam");
-            surahList.add("al_haqqah");
-            surahList.add("al_maarij");
-            surahList.add("nuh");
-            surahList.add("al_jinn");
-            surahList.add("al_muzzammil");
-            surahList.add("al_muddaththir");
-            surahList.add("al_qiyamah");
-            surahList.add("al_insan");
-            surahList.add("al_mursalat");
-            surahList.add("an_naba");
-            surahList.add("an_naziat");
-            surahList.add("abasa");
-            surahList.add("at_takwir");
-            surahList.add("al_infitar");
-            surahList.add("al_mutaffifin");
-            surahList.add("al_inshiqaq");
-            surahList.add("al_buruj");
-            surahList.add("at_tariq");
-            surahList.add("al_ala");
-            surahList.add("al_ghashiyah");
-            surahList.add("al_fajr");
-            surahList.add("al_balad");
-            surahList.add("ash_shams");
-            surahList.add("al_layl");
-            surahList.add("ad_duhaa");
-            surahList.add("ash_sharh");
-            surahList.add("at_tin");
-            surahList.add("al_alaq");
-            surahList.add("al_qadr");
-            surahList.add("al_bayyinah");
-            surahList.add("az_zalzalah");
-            surahList.add("al_adiyat");
-            surahList.add("al_qariah");
-            surahList.add("at_takathur");
-            surahList.add("al_asr");
-            surahList.add("al_humazah");
-            surahList.add("al_fil");
-            surahList.add("quraysh");
-            surahList.add("al_maun");
-            surahList.add("al_kawthar");
-            surahList.add("al_kafirun");
-            surahList.add("an_nasr");
-            surahList.add("al_masad");
-            surahList.add("al_ikhlas");
-            surahList.add("al_falaq");
-            surahList.add("an_nas");
-        }
+        s1.populate();
     }
 
     //====================================== onCreate ============================================//
@@ -307,9 +194,9 @@ public class MainActivity extends AppCompatActivity
             }
         });
         am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        surahText = (TextView) findViewById(R.id.surahT);
         try {
             Typeface mFont = Typeface.createFromAsset(getAssets(), "Nafees.ttf");
-            surahText = (TextView) findViewById(R.id.surahT);
             surahText.setTypeface(mFont);
         } catch (Exception e) {
             Log.e("Quran", "typeFace Error!", e);
@@ -369,7 +256,6 @@ public class MainActivity extends AppCompatActivity
     //====================================== Options Selected ====================================//
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Dialogs d1 = new Dialogs();
         d1.menuItem(this, item);
         return super.onOptionsItemSelected(item);
     }
@@ -433,9 +319,9 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    //====================================== SeekBar onProgressChanged  ==========================//
     @Override
-    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-    }
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {}
 
     //====================================== SeekBar onStartTouch  ===============================//
     @Override
@@ -461,20 +347,10 @@ public class MainActivity extends AppCompatActivity
 
     //====================================== Get Text For Surah  =================================//
     public void getText() {
-        try {
-            surahText.setText("");
-            String sNumber = "s" + (number + 1) + ".uaq";
-            BufferedReader reader = new BufferedReader(new InputStreamReader(getAssets().open(sNumber)));
-            String line;
-            Log.e("Reader Stuff", reader.readLine());
-            while ((line = reader.readLine()) != null) {
-                surahText.append(line);
-            }
-        } catch (Exception e) {
-            Log.e("Quran", "getText!", e);
-        }
+        surahText.setText(s1.text(this));
     }
 
+    //====================================== Media Play ==========================================//
     public void mediaPlay() {
         if (requestAudioFocusResult == 0) {
             requestAudioFocusResult = am.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
@@ -487,6 +363,7 @@ public class MainActivity extends AppCompatActivity
         onPrepared(mediaPlayer);
     }
 
+    //====================================== Media Pause =========================================//
     public void mediaPause() {
         am.abandonAudioFocus(this);
         handler.removeMessages(0);
@@ -495,6 +372,7 @@ public class MainActivity extends AppCompatActivity
         checkPlayState();
     }
 
+    //====================================== Audio Focus  ========================================//
     @Override
     public void onAudioFocusChange(int audioFocusChanged) {
         switch (audioFocusChanged) {
@@ -517,6 +395,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    //====================================== MediaPlayer OnCompletion  ===========================//
     @Override
     public void onCompletion(final MediaPlayer mediaPlayer) {
         try {

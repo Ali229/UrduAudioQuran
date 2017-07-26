@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.widget.RadioButton;
 
 public class Dialogs {
 
@@ -27,13 +28,15 @@ public class Dialogs {
         }
         else if (id == R.id.action_settings) {
             AlertDialog.Builder builder = new AlertDialog.Builder(c);
-            LayoutInflater inflater = this.getLayoutInflater();
+            LayoutInflater inflater = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             builder.setView(inflater.inflate(R.layout.dialog, null))
                     .setPositiveButton("Done", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int id) {
+
                         }
                     });
+            RadioButton rButton = (RadioButton) findViewById(R.id.rMedium);
             final AlertDialog dialog = builder.create();
             dialog.show();
         }
